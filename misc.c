@@ -1,7 +1,3 @@
-//
-// Created by Matthieu Felix on 21/05/2016.
-//
-
 #include <stdarg.h>
 #include "mulisp.h"
 

@@ -1,6 +1,5 @@
 #include <ctype.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include "mulisp.h"
 
@@ -18,7 +17,8 @@ int part_of_symbol(int c) {
 /* next_tok_from - returns the next token in string. Updates string to the first position after the end of the
  * returned token.
  */
-char* next_tok_from(char** string_pointer) {
+char* next_tok_from(char** string_pointer)
+{
     char* token = malloc(sizeof(char) * MAX_TOKEN_LENGTH);
     char* string = *string_pointer;
 
@@ -83,7 +83,8 @@ char* next_tok_from(char** string_pointer) {
 }
 
 
-List* tokenize(char* string) {
+List* tokenize(char* string)
+{
     List * lst_head = NULL;
     List * current_lst_item;
     char * new_token;

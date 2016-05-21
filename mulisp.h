@@ -24,8 +24,8 @@ typedef struct s_list {
  */
 
 typedef struct s_object {
-    enum { OTYPE_INT, OTYPE_FLT, OTYPE_FRAC,
-           OTYPE_PAIR, OTYPE_BOOL, OTYPE_PROC } type;
+    enum { OTYPE_INT, OTYPE_FLT, OTYPE_FRAC, OTYPE_CHR, OTYPE_VECTOR, OTYPE_STR, OTYPE_PORT,
+           OTYPE_PAIR, OTYPE_BOOL, OTYPE_PROC, OTYPE_NIL } type;
     union {
         struct {
             int value;
@@ -38,12 +38,27 @@ typedef struct s_object {
             unsigned numerator;
         } fraction;
         struct {
+            int value;
+        } chr;
+        struct {
+            int length;
+            struct s_object * value;
+        } vector;
+        struct {
+            int length;
+            int * value;
+        } str;
+        struct {
             char value;
         } boolean;
         struct {
             struct s_object * car;
             struct s_object * cdr;
         } pair;
+        struct {
+            struct s_object * arguments;
+            struct s_object * body;
+        } proc;
     };
 } Object;
 
