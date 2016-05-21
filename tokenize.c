@@ -6,23 +6,12 @@
 
 #define MAX_TOKEN_LENGTH 1000
 
-int part_of_symbol(int c) {
-    return !(isspace(c) || c == '(' || c == ')' || c == '"' || c == EOF);
+int one_char_sym(int c) {
+    return c == '(' || c == ')';
 }
 
-int skip_blanks(FILE* stream)
-{
-    int c;
-
-    do {
-        c = getc(stream);
-        if(c == EOF)
-            break;
-    } while(isspace(c));
-
-    ungetc(c, stream);
-
-    return 0;
+int part_of_symbol(int c) {
+    return c && !(isspace(c) || c == '(' || c == ')');
 }
 
 
@@ -37,23 +26,55 @@ char* next_tok_from(char** string_pointer) {
     if(isspace(*string))
         while(isspace(*(++string)));
 
-    // String: match to corresponding "
+    // String: match corresponding "
     if(*string == '"') {
         char* matching = strchr(string+1, '"');
-        if(matching == NULL || matching - string > MAX_TOKEN_LENGTH-2)
-            fatal_error("Unmatched \" or string constant over %d\n", MAX_TOKEN_LENGTH-2);
+        if(matching == NULL)
+            fatal_error("Unmatched \"\n");
+        else if(matching - string > MAX_TOKEN_LENGTH-2)
+            fatal_error("String constant over %d length\n", MAX_TOKEN_LENGTH-2);
 
-        strncpy(token, string, matching-string);
+        strncpy(token, string, matching-string+1);
+        string = matching+1;
     }
+
     // Comment: skip to newline and call recursively
     else if(*string == ';') {
         char* end = strchr(string+1, '\n');
+
+        free(token);
+
         if(end == NULL) {
-            free(token);
             return NULL;
         }
+        string = end;
+        token = next_tok_from(&string);
+    }
 
+    // One-char symbol
+    else if(one_char_sym(*string)) {
+        token[0] = *string;
+        token[1] = 0;
+        string++;
+    }
 
+    // Normal symbol
+    else if(*string){
+        int i_token = 0;
+
+        do {
+            token[i_token] = *string;
+            i_token++;
+            string++;
+        } while(*string && part_of_symbol(*string) && i_token < MAX_TOKEN_LENGTH-1);
+
+        token[i_token] = 0;
+    }
+
+    // End of string
+    else {
+        free(token);
+        token = NULL;
     }
 
     *string_pointer = string;

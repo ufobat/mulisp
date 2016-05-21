@@ -2,17 +2,23 @@
 #include <stdlib.h>
 #include "mulisp.h"
 
+
+void tokenize_tester(char * str) {
+    List * ans = tokenize(str);
+
+    while(ans != NULL) {
+        printf(" %s |", (char*)ans->item);
+        ans = ans->next;
+    }
+
+    printf("\n");
+}
+
+
 int main()
 {
-    char * tok;
-
-    do {
-        tok = get_next_token(stdin);
-        if(tok) {
-            printf("%s\n", tok);
-            free(tok);
-        }
-    } while(tok != NULL);
+    tokenize_tester("hello");
+    tokenize_tester(" (abc    \"def ghi ::-()\" 3)')   ");
 
     return 0;
 }

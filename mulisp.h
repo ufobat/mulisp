@@ -10,6 +10,14 @@
 
 #define MAX(a, b) (a > b ? a : b)
 
+/*
+ * General structures
+ */
+
+typedef struct s_list {
+    struct s_list * next;
+    void * item;
+} List;
 
 /*
  * Objects
@@ -44,17 +52,13 @@ typedef struct s_object {
  * Tokenizer - tokenize.c
  */
 
-char* get_next_token(FILE* stream);
+List* tokenize(char* string);
 
 
 /*
  * Lists - list.c
  */
 
-typedef struct s_list {
-    struct s_list * next;
-    void * item;
-} List;
 
 /*
  * misc.c
