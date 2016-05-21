@@ -1,20 +1,18 @@
-#include "muforth.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include "mulisp.h"
 
-void test_ints();
-
-void main()
+int main()
 {
-    test_ints();
-}
+    char * tok;
 
-void test_ints()
-{
-    const int NB_TESTS = 8;
-    char* strings[NB_TESTS] = {"", "-", "1", "-1", "67.89", "899", "8ab", "a89"};
+    do {
+        tok = get_next_token(stdin);
+        if(tok) {
+            printf("%s\n", tok);
+            free(tok);
+        }
+    } while(tok != NULL);
 
-    printf("valid_int tests\n");
-
-    for(int i = 0; i < NB_TESTS; i++) {
-        printf("%s: %d\n", strings[i], valid_int(strings[i]));
-    }
+    return 0;
 }
