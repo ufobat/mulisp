@@ -68,6 +68,9 @@ void write_item(Object *object)
         case OTYPE_PORT:
             printf("<port>");
             break;
+        case OTYPE_SYM:
+            printf("%s", object->str.value);
+            break;
     }
 }
 

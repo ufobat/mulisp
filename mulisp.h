@@ -8,62 +8,90 @@
 #ifndef MUFORTH_MUFORTH_H
 #define MUFORTH_MUFORTH_H
 
+#define HASHTBL_SIZE 1000
+
 #define MAX(a, b) (a > b ? a : b)
 
 /*
  * General structures
  */
 
-typedef struct s_list {
-    struct s_list * next;
-    void * item;
+typedef struct s_list
+{
+    struct s_list *next;
+    void *item;
 } List;
+
+typedef struct s_environment
+{
+    struct s_environment *parent;
+    struct s_hashtable_entry
+    {
+        char *key;
+        struct s_object *refer;
+    } bindings[HASHTBL_SIZE];
+} Environment;
 
 /*
  * Objects
  */
 
-enum e_type {OTYPE_INT, OTYPE_FLT, OTYPE_FRAC, OTYPE_CHR, OTYPE_VECTOR, OTYPE_STR, OTYPE_PORT,
-    OTYPE_PAIR, OTYPE_BOOL, OTYPE_PROC, OTYPE_NIL};
+enum e_type
+{
+    OTYPE_INT, OTYPE_FLT, OTYPE_FRAC, OTYPE_CHR, OTYPE_VECTOR, OTYPE_STR, OTYPE_PORT,
+    OTYPE_PAIR, OTYPE_BOOL, OTYPE_PROC, OTYPE_NIL, OTYPE_SYM
+};
 
-typedef struct s_object {
+typedef struct s_object
+{
     enum e_type type;
-    union {
-        struct {
+    union
+    {
+        struct
+        {
             int value;
         } integer;
-        struct {
+        struct
+        {
             double value;
         } floating;
-        struct {
+        struct
+        {
             unsigned denominator;
             int numerator;
         } fraction;
-        struct {
+        struct
+        {
             int value;
         } chr;
-        struct {
+        struct
+        {
             int length;
-            struct s_object ** value;
+            struct s_object **value;
         } vector;
-        struct {
+        struct
+        {
             int length;
-            char * value;
+            char *value;
         } str;
-        struct {
+        struct
+        {
             int flags;
-            void * accessed;
+            void *accessed;
         } port;
-        struct {
+        struct
+        {
             char value;
         } boolean;
-        struct {
-            struct s_object * car;
-            struct s_object * cdr;
+        struct
+        {
+            struct s_object *car;
+            struct s_object *cdr;
         } pair;
-        struct {
-            struct s_object * arguments;
-            struct s_object * body;
+        struct
+        {
+            struct s_object *arguments;
+            struct s_object *body;
             // add env
         } proc;
     };
@@ -74,14 +102,14 @@ typedef struct s_object {
  * Tokenizer - tokenize.c
  */
 
-List* tokenize(char* string);
+List *tokenize(char *string);
 
 
 /*
  * Parser - parse.c
  */
 
-Object* parse(List** tokens_pointer);
+Object *parse(List **tokens_pointer);
 
 
 /*
@@ -94,14 +122,16 @@ void write(Object *object);
  * misc.c
  */
 
-void fatal_error(const char * fmt, ...);
+void fatal_error(const char *fmt, ...);
 
 /*
  * For testing - remove afterwards.
  */
 
 int parse_int(char *tok, int *value);
+
 int parse_float(char *tok, double *value);
+
 int parse_frac(char *tok, int *num, unsigned *denom);
 
 

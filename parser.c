@@ -234,7 +234,11 @@ Object *parse(List **tokens_pointer)
         fatal_error("Unmatched or unexpected %s\n", first_token);
     }
     else {
-        fatal_error("%s: unknown type\n", first_token);
+        ret->type = OTYPE_SYM;
+        ret->str.length = (int) strlen(first_token);
+        ret->str.value = malloc(ret->str.length * sizeof(char));
+        strncpy(ret->str.value, first_token, ret->str.length);
+        ret->str.value[ret->str.length] = 0;
     }
 
     if (do_update_and_free) {
