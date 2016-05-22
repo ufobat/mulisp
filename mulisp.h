@@ -22,14 +22,18 @@ typedef struct s_list
     void *item;
 } List;
 
+
+struct s_hashtable_entry
+{
+    struct s_hashtable_entry *next;
+    char *key;
+    struct s_object *refer;
+};
+
 typedef struct s_environment
 {
     struct s_environment *parent;
-    struct s_hashtable_entry
-    {
-        char *key;
-        struct s_object *refer;
-    } bindings[HASHTBL_SIZE];
+    struct s_hashtable_entry *bindings[HASHTBL_SIZE];
 } Environment;
 
 /*
@@ -39,7 +43,7 @@ typedef struct s_environment
 enum e_type
 {
     OTYPE_INT, OTYPE_FLT, OTYPE_FRAC, OTYPE_CHR, OTYPE_VECTOR, OTYPE_STR, OTYPE_PORT,
-    OTYPE_PAIR, OTYPE_BOOL, OTYPE_PROC, OTYPE_NIL, OTYPE_SYM
+    OTYPE_PAIR, OTYPE_BOOL, OTYPE_PROC, OTYPE_PRIM, OTYPE_NIL, OTYPE_SYM
 };
 
 typedef struct s_object
@@ -92,11 +96,22 @@ typedef struct s_object
         {
             struct s_object *arguments;
             struct s_object *body;
-            // add env
+            Environment *env;
         } proc;
+
+        struct
+        {
+            struct s_object *(*f)(struct s_object *args);
+        } prim;
     };
 } Object;
 
+
+/*
+ * Initialization - init.c
+ */
+
+void init();
 
 /*
  * Tokenizer - tokenize.c
@@ -109,6 +124,8 @@ List *tokenize(char *string);
  * Parser - parse.c
  */
 
+Object *make_symbol(char *val);
+
 Object *parse(List **tokens_pointer);
 
 
@@ -117,6 +134,28 @@ Object *parse(List **tokens_pointer);
  */
 
 void write(Object *object);
+
+void write_item(Object *object);
+
+/*
+ * Evaluator - eval.c
+ */
+
+Object *eval(Object *to_eval, Environment *env);
+
+/*
+ * Environments - env.c
+ */
+
+Object *get_object(char *identifier, Environment *env);
+
+void define_object(char *identifier, Object *obj, Environment *env);
+
+void set_object(char *identifier, Object *obj, Environment *env);
+
+Environment *new_env(Environment *parent);
+
+void delete_env(Environment *env);
 
 /*
  * misc.c
@@ -134,14 +173,21 @@ int parse_float(char *tok, double *value);
 
 int parse_frac(char *tok, int *num, unsigned *denom);
 
+unsigned get_hash(char *str);
+
+void run_tests();
+
 
 /*
- * Constants
+ * Global objects
  */
 
-extern Object nil;
-extern Object quote;
-extern Object t;
-extern Object f;
+extern Object *nil;
+extern Object *t;
+extern Object *f;
+extern Object *quote;
+extern Object *quasiquote;
+extern Object *unquote;
+extern Environment *global_environment;
 
 #endif //MUFORTH_MUFORTH_H

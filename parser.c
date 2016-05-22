@@ -3,6 +3,16 @@
 #include "mulisp.h"
 
 
+Object *make_symbol(char *val)
+{
+    Object *sym = malloc(sizeof(Object));
+    sym->type = OTYPE_SYM;
+    sym->str.value = malloc(sizeof(char) * (strlen(val) + 1));
+    strncpy(sym->str.value, val, strlen(val) + 1);
+    return sym;
+}
+
+
 int is_num_char(char c)
 {
     return c >= '0' && c <= '9';
@@ -144,7 +154,7 @@ Object *parse_list(List **tokens_pointer)
         *tokens_pointer = tokens->next;
         free(tokens);
 
-        ret = &nil;
+        ret = nil;
     }
     else if (!strcmp(first_token, ".")) {
         free(first_token);
@@ -234,11 +244,8 @@ Object *parse(List **tokens_pointer)
         fatal_error("Unmatched or unexpected %s\n", first_token);
     }
     else {
-        ret->type = OTYPE_SYM;
-        ret->str.length = (int) strlen(first_token);
-        ret->str.value = malloc(ret->str.length * sizeof(char));
-        strncpy(ret->str.value, first_token, ret->str.length);
-        ret->str.value[ret->str.length] = 0;
+        free(ret);
+        ret = make_symbol(first_token);
     }
 
     if (do_update_and_free) {

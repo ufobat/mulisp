@@ -62,7 +62,7 @@ void write_item(Object *object)
             printf("(");
             write_inside_list(object);
             break;
-        case OTYPE_PROC:
+        case OTYPE_PROC: case OTYPE_PRIM:
             printf("<procedure>");
             break;
         case OTYPE_PORT:
