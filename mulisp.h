@@ -44,7 +44,7 @@ typedef struct s_object {
         } chr;
         struct {
             int length;
-            struct s_object * value;
+            struct s_object ** value;
         } vector;
         struct {
             int length;
@@ -64,6 +64,7 @@ typedef struct s_object {
         struct {
             struct s_object * arguments;
             struct s_object * body;
+            // add env
         } proc;
     };
 } Object;
@@ -80,7 +81,14 @@ List* tokenize(char* string);
  * Parser - parse.c
  */
 
-Object* parse(List** tokens_pointer, int free);
+Object* parse(List** tokens_pointer);
+
+
+/*
+ * Writer - write.c
+ */
+
+void write(Object *object);
 
 /*
  * misc.c
@@ -96,5 +104,14 @@ int parse_int(char *tok, int *value);
 int parse_float(char *tok, double *value);
 int parse_frac(char *tok, int *num, unsigned *denom);
 
+
+/*
+ * Constants
+ */
+
+extern Object nil;
+extern Object quote;
+extern Object t;
+extern Object f;
 
 #endif //MUFORTH_MUFORTH_H

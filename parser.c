@@ -1,7 +1,6 @@
 #include <string.h>
+#include <stdlib.h>
 #include "mulisp.h"
-
-Object *parse_list(List **tokens_pointer, int free);
 
 
 int is_num_char(char c)
@@ -71,7 +70,7 @@ int parse_float(char *tok, double *value)
         if (!is_num_char(*tok))
             return 0;
         not_null = 1;
-        frac += (*tok - '0') / (float)divider;
+        frac += (*tok - '0') / (float) divider;
         divider *= 10;
         tok++;
     }
@@ -97,7 +96,7 @@ int parse_frac(char *tok, int *num_ptr, unsigned *denom_ptr)
 
     while (*tok) {
         if (!is_num_char(*tok)) {
-            if(*tok == '/') {
+            if (*tok == '/') {
                 tok++;
                 break;
             }
@@ -118,25 +117,78 @@ int parse_frac(char *tok, int *num_ptr, unsigned *denom_ptr)
         tok++;
     }
 
-    *num_ptr = sign*num;
+    *num_ptr = sign * num;
     *denom_ptr = denom;
 
     return num_not_null && denom_not_null;
 }
 
-/* parse -- returns the first object in tokens, and updates the tokens List pointer to point to the beginning of the
- * unparsed tokens. If free is set, frees the parsed tokens and associated list.
+
+/* parse_list -- recursively parse a list, given the initial ( and some items have already been parsed
+ *
  */
-Object *parse(List **tokens_pointer, int free)
+Object *parse_list(List **tokens_pointer)
+{
+    List *tokens = *tokens_pointer;
+    char *first_token;
+    Object *ret;
+    Object *first, *rest;
+
+    if (tokens == NULL)
+        fatal_error("Non-terminated list\n");
+
+    first_token = tokens->item;
+
+    if (!strcmp(first_token, ")")) {
+        free(first_token);
+        *tokens_pointer = tokens->next;
+        free(tokens);
+
+        ret = &nil;
+    }
+    else if (!strcmp(first_token, ".")) {
+        free(first_token);
+        *tokens_pointer = tokens->next;
+        free(tokens);
+
+        first = parse(tokens_pointer);
+        tokens = *tokens_pointer;
+
+        if (tokens == NULL) {
+            fatal_error("Non-terminated dotted list\n");
+        } else if (strcmp(tokens->item, ")")) {
+            fatal_error("Expected ) instead of %s after .\n", (char *) tokens->item);
+        } else {
+            free(tokens->item);
+            *tokens_pointer = tokens->next;
+            free(tokens);
+        }
+        ret = first;
+    }
+    else {
+        first = parse(tokens_pointer);
+        rest = parse_list(tokens_pointer);
+        ret = malloc(sizeof(Object));
+        ret->type = OTYPE_PAIR;
+        ret->pair.car = first;
+        ret->pair.cdr = rest;
+    }
+
+    return ret;
+}
+
+
+/* parse -- returns the first object in tokens, and updates the tokens List pointer to point to the beginning of the
+ * unparsed tokens. Also frees the parsed tokens and associated list.
+ */
+Object *parse(List **tokens_pointer)
 {
     List *tokens = *tokens_pointer;
     Object *ret = malloc(sizeof(Object));
     char *first_token = tokens->item;
+    int do_update_and_free = 1;
 
-    if (!strcmp(first_token, "()")) {
-        ret->type = OTYPE_NIL;
-    }
-    else if (!strcmp(first_token, "#t")) {
+    if (!strcmp(first_token, "#t")) {
         ret->type = OTYPE_BOOL;
         ret->boolean.value = 1;
     }
@@ -156,8 +208,9 @@ Object *parse(List **tokens_pointer, int free)
     else if (strlen(first_token) >= 2 && first_token[0] == '"' && first_token[strlen(first_token) - 1] == '"') {
         ret->type = OTYPE_STR;
         ret->str.length = (int) strlen(first_token) - 2;
-        ret->str.value = malloc((ret->str.length + 1) * sizeof(int));
+        ret->str.value = malloc((ret->str.length + 2) * sizeof(char));
         strncpy(ret->str.value, first_token + 1, ret->str.length);
+        ret->str.value[ret->str.length] = 0;
     }
     else if (parse_int(first_token, &(ret->integer.value))) {
         ret->type = OTYPE_INT;
@@ -168,8 +221,26 @@ Object *parse(List **tokens_pointer, int free)
     else if (parse_frac(first_token, &(ret->fraction.numerator), &(ret->fraction.denominator))) {
         ret->type = OTYPE_FRAC;
     }
+    else if (!strcmp(first_token, "(")) {
+        free(ret);
+        free(first_token);
+        *tokens_pointer = tokens->next;
+        free(tokens);
+
+        ret = parse_list(tokens_pointer);
+        do_update_and_free = 0;
+    }
+    else if (!strcmp(first_token, ")") || !strcmp(first_token, ".")) {
+        fatal_error("Unmatched or unexpected %s\n", first_token);
+    }
     else {
-        fatal_error("%s: unknown type", first_token);
+        fatal_error("%s: unknown type\n", first_token);
+    }
+
+    if (do_update_and_free) {
+        free(first_token);
+        *tokens_pointer = tokens->next;
+        free(tokens);
     }
 
     return ret;

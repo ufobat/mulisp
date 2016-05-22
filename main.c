@@ -6,11 +6,9 @@ void test_parser(char* str)
 {
     List * lst = tokenize(str);
 
-    printf("%s\n", (char*)lst->item);
+    Object * res = parse(&lst);
 
-    Object * res = parse(&lst, 0);
-
-    printf("Type %d\n", res->type);
+    write(res);
 }
 
 void test_number_parser(char* str) {
@@ -50,12 +48,20 @@ int main()
     test_number_parser("2/3");
     test_number_parser("-18/89");
 
-    printf("General parsing --\n");
+    printf("General object parsing --\n");
     test_parser("\"hello\"");
     test_parser("#t");
     test_parser("#f");
     test_parser("#\\c");
     test_parser("21");
+    test_parser("()");
+    test_parser("(1 . 2)");
+//    test_parser("(1 . 2");
+    test_parser("(1 2 . 3)");
+    test_parser("(1)");
+    test_parser("(1 \"hello\")");
+    test_parser("((1 2) 3 . ())");
+    test_parser("abc");
 
     return 0;
 }
