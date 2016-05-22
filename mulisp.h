@@ -23,9 +23,11 @@ typedef struct s_list {
  * Objects
  */
 
+enum e_type {OTYPE_INT, OTYPE_FLT, OTYPE_FRAC, OTYPE_CHR, OTYPE_VECTOR, OTYPE_STR, OTYPE_PORT,
+    OTYPE_PAIR, OTYPE_BOOL, OTYPE_PROC, OTYPE_NIL};
+
 typedef struct s_object {
-    enum { OTYPE_INT, OTYPE_FLT, OTYPE_FRAC, OTYPE_CHR, OTYPE_VECTOR, OTYPE_STR, OTYPE_PORT,
-           OTYPE_PAIR, OTYPE_BOOL, OTYPE_PROC, OTYPE_NIL } type;
+    enum e_type type;
     union {
         struct {
             int value;
@@ -34,8 +36,8 @@ typedef struct s_object {
             double value;
         } floating;
         struct {
-            int denumerator;
-            unsigned numerator;
+            unsigned denominator;
+            int numerator;
         } fraction;
         struct {
             int value;
@@ -46,8 +48,12 @@ typedef struct s_object {
         } vector;
         struct {
             int length;
-            int * value;
+            char * value;
         } str;
+        struct {
+            int flags;
+            void * accessed;
+        } port;
         struct {
             char value;
         } boolean;
@@ -71,14 +77,24 @@ List* tokenize(char* string);
 
 
 /*
- * Lists - list.c
+ * Parser - parse.c
  */
 
+Object* parse(List** tokens_pointer, int free);
 
 /*
  * misc.c
  */
 
 void fatal_error(const char * fmt, ...);
+
+/*
+ * For testing - remove afterwards.
+ */
+
+int parse_int(char *tok, int *value);
+int parse_float(char *tok, double *value);
+int parse_frac(char *tok, int *num, unsigned *denom);
+
 
 #endif //MUFORTH_MUFORTH_H
