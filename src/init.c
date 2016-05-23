@@ -1,4 +1,5 @@
 #include "mulisp.h"
+#include "prim.h"
 
 Environment *global_environment;
 Object *nil;
@@ -7,6 +8,16 @@ Object *t;
 Object *quote;
 Object *quasiquote;
 Object *unquote;
+
+Object *make_prim(char *identifier, Object *(*f)(Object *args, Environment *env))
+{
+    Object *ret = malloc(sizeof(Object));
+    ret->type = OTYPE_PRIM;
+    ret->prim.f = f;
+    define_object(identifier, ret, global_environment);
+
+    return ret;
+}
 
 void init()
 {
@@ -31,4 +42,6 @@ void init()
 
     unquote = make_symbol("unquote");
     define_object("unquote", unquote, global_environment);
+
+    make_prim("+", plus);
 }

@@ -31,7 +31,7 @@ int main()
 {
     init();
 
-    run_tests();
+    printf("*** muScheme 2016-05-23\n");
 
     repl();
 

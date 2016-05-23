@@ -57,14 +57,75 @@ Object *ret_stack_pop()
 }
 
 
+
+/* Binds arguments to argument lists
+ */
+void map_args(Object *formals, Object *parameters, Environment *env)
+{
+    if (formals->type == OTYPE_SYM) {
+        define_object(formals->str.value, parameters, env);
+    }
+    else if (formals->type == OTYPE_PAIR) {
+        if (parameters->type != OTYPE_PAIR)
+            fatal_error("Parameter destructuring error\n");
+        map_args(formals->pair.car, parameters->pair.car, env);
+        map_args(formals->pair.cdr, parameters->pair.cdr, env);
+    }
+    else if (formals->type == OTYPE_NIL) {
+        if (parameters->type != OTYPE_NIL)
+            fatal_error("Parameter destructuring error\n");
+    }
+    else
+        fatal_error("Argument lists should only contain symbols and pairs\n");
+}
+
+void st_eval(Object *to_eval, Environment *env);
+
+
+/* Evaluates all items in a list, returns a new list with these items */
+Object *map_eval(Object *list, Environment *env)
+{
+    Object *ret = nil;
+
+    if(list->type == OTYPE_NIL)
+        return nil;
+    else if(list->type == OTYPE_PAIR) {
+        ret = malloc(sizeof(Object));
+        ret->type = OTYPE_PAIR;
+        st_eval(list->pair.car, env);
+        ret->pair.car = ret_stack_pop();
+        ret->pair.cdr = map_eval(list->pair.cdr, env);
+    }
+    else
+        fatal_error("Malformed function call\n");
+
+    return ret;
+}
+
+
 void st_apply(Object *function, Object *parameters, Environment *env)
 {
+    Environment *running_env;
 
+    if(function->type == OTYPE_PRIM) {
+        ret_stack_push((function->prim.f)(parameters, env));
+    }
+    else if(function->type == OTYPE_PROC) {
+        running_env = new_env(env);
+
+        map_args(function->proc.arguments, parameters, running_env);
+        instr_stack_push(INSTR_EVAL, running_env, function->proc.body, NULL);
+    }
+    else
+        fatal_error("Tried to apply a non-function\n");
 }
 
 
 void st_eval(Object *to_eval, Environment *env)
 {
+    int is_sym;
+    char *sym;
+
     switch (to_eval->type) {
     case OTYPE_STR:
     case OTYPE_NIL:
@@ -87,72 +148,87 @@ void st_eval(Object *to_eval, Environment *env)
          * Hold your breath and count to ten */
 
         /* TODO: check all instruction structures are correct */
+        is_sym = (to_eval->pair.car->type == OTYPE_SYM);
+        sym = to_eval->pair.car->str.value;
 
-        if (to_eval->pair.car->type == OTYPE_SYM) {
-            char *sym = to_eval->pair.car->str.value;
+        if (is_sym && !strcmp(sym, "quote")) {
+            ret_stack_push(to_eval->pair.cdr->pair.car);
+        }
+        else if (is_sym && !strcmp(sym, "begin")) {
+            /* TODO: Not properly tail recursive. This is a fairly major problem. */
+            Object *ret = nil;
+            Object *iter = to_eval->pair.cdr;
 
-            if (!strcmp(sym, "quote")) {
-                ret_stack_push(to_eval->pair.cdr->pair.car);
-            }
-            else if (!strcmp(sym, "begin")) {
-                Object *ret = nil;
-                Object *iter = to_eval->pair.cdr;
-
-                while (iter != nil) {
-                    st_eval(iter->pair.car, env);
-                    iter = iter->pair.cdr;
-                    ret = ret_stack_pop();
-                }
-
+            if(iter == nil) {
                 ret_stack_push(ret);
+                return;
             }
-            else if (!strcmp(sym, "define")) {
-                Object *identifier_obj = to_eval->pair.cdr->pair.car;
 
-                st_eval(to_eval->pair.cdr->pair.cdr->pair.car, env);
-                define_object(identifier_obj->str.value, ret_stack_pop(), env);
-
-                ret_stack_push(nil);
+            while (iter->pair.cdr != nil) {
+                st_eval(iter->pair.car, env);
+                iter = iter->pair.cdr;
+                ret_stack_pop();
             }
-            else if (!strcmp(sym, "set!")) {
-                Object *identifier_obj = to_eval->pair.cdr->pair.car;
 
-                st_eval(to_eval->pair.cdr->pair.cdr->pair.car, env);
-                set_object(identifier_obj->str.value, ret_stack_pop(), env);
+            instr_stack_push(INSTR_EVAL, env, iter->pair.car, NULL);
+        }
+        else if (is_sym && !strcmp(sym, "define")) {
+            Object *identifier_obj = to_eval->pair.cdr->pair.car;
 
-                ret_stack_push(nil);
-            }
-            else if (!strcmp(sym, "if")) {
-                Object *cond;
+            st_eval(to_eval->pair.cdr->pair.cdr->pair.car, env);
+            define_object(identifier_obj->str.value, ret_stack_pop(), env);
 
-                st_eval(to_eval->pair.cdr->pair.car, env);
-                cond = ret_stack_pop();
+            ret_stack_push(nil);
+        }
+        else if (is_sym && !strcmp(sym, "set!")) {
+            Object *identifier_obj = to_eval->pair.cdr->pair.car;
 
-                if (cond->type == OTYPE_BOOL && !cond->boolean.value) {
-                    if (to_eval->pair.cdr->pair.cdr->pair.cdr != nil)
-                        instr_stack_push(INSTR_EVAL, env, to_eval->pair.cdr->pair.cdr->pair.cdr->pair.car, NULL);
-                    else
-                        ret_stack_push(nil);
-                }
+            st_eval(to_eval->pair.cdr->pair.cdr->pair.car, env);
+            set_object(identifier_obj->str.value, ret_stack_pop(), env);
+
+            ret_stack_push(nil);
+        }
+        else if (is_sym && !strcmp(sym, "if")) {
+            Object *cond;
+
+            st_eval(to_eval->pair.cdr->pair.car, env);
+            cond = ret_stack_pop();
+
+            if (cond->type == OTYPE_BOOL && !cond->boolean.value) {
+                if (to_eval->pair.cdr->pair.cdr->pair.cdr != nil)
+                    instr_stack_push(INSTR_EVAL, env, to_eval->pair.cdr->pair.cdr->pair.cdr->pair.car, NULL);
                 else
-                    instr_stack_push(INSTR_EVAL, env, to_eval->pair.cdr->pair.cdr->pair.car, NULL);
-            }
-            else if (!strcmp(sym, "lambda")) {
-                Object *lambda = malloc(sizeof(Object));
-                Object *body = malloc(sizeof(Object));
-
-                body->type = OTYPE_PAIR;
-                body->pair.car = make_symbol("begin");
-                body->pair.cdr = to_eval->pair.cdr->pair.cdr;
-
-                lambda->type = OTYPE_PROC;
-                lambda->proc.arguments = to_eval->pair.cdr->pair.car;
-                lambda->proc.body = body;
-                lambda->proc.env = env;
+                    ret_stack_push(nil);
             }
             else
-                fatal_error("Not implemented\n");
+                instr_stack_push(INSTR_EVAL, env, to_eval->pair.cdr->pair.cdr->pair.car, NULL);
         }
+        else if (is_sym && !strcmp(sym, "lambda")) {
+            Object *lambda = malloc(sizeof(Object));
+            Object *body = malloc(sizeof(Object));
+
+            body->type = OTYPE_PAIR;
+            body->pair.car = make_symbol("begin");
+            body->pair.cdr = to_eval->pair.cdr->pair.cdr;
+
+            lambda->type = OTYPE_PROC;
+            lambda->proc.arguments = to_eval->pair.cdr->pair.car;
+            lambda->proc.body = body;
+            lambda->proc.env = env;
+
+            ret_stack_push(lambda);
+        }
+        else {
+            Object *function;
+            Object *parameters;
+
+            st_eval(to_eval->pair.car, env);
+            function = ret_stack_pop();
+            parameters = map_eval(to_eval->pair.cdr, env);
+            instr_stack_push(INSTR_APPLY, env, function, parameters);
+        }
+
+
         break;
 
 

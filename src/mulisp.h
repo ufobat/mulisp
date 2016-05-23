@@ -101,7 +101,7 @@ typedef struct s_object
 
         struct
         {
-            struct s_object *(*f)(struct s_object *args);
+            struct s_object *(*f)(struct s_object *args, Environment *env);
         } prim;
     };
 } Object;
