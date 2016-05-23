@@ -45,7 +45,11 @@ struct s_hashtable_entry *get_entry(char *identifier, Environment *env)
 
 Object *get_object(char *identifier, Environment *env)
 {
-    Object *ret = get_entry(identifier, env)->refer;
+    struct s_hashtable_entry *entry = get_entry(identifier, env);
+    if(entry == NULL)
+        fatal_error("Undefined identifier\n");
+
+    Object *ret = entry->refer;
     if(ret == NULL)
         fatal_error("Accessing unspecific binding %s\n", identifier);
 
