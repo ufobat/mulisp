@@ -34,14 +34,6 @@ void init()
     f->type = OTYPE_BOOL;
     f->boolean.value = 0;
 
-    quote = make_symbol("quote");
-    define_object("quote", quote, global_environment);
-
-    quasiquote = make_symbol("quasiquote");
-    define_object("quasiquote", quasiquote, global_environment);
-
-    unquote = make_symbol("unquote");
-    define_object("unquote", unquote, global_environment);
-
     make_prim("+", plus);
+    make_prim(">", gt);
 }

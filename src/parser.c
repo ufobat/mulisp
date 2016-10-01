@@ -208,9 +208,11 @@ Object *parse(List **tokens_pointer)
     }
     else if (!strncmp(first_token, "#\\", 2)) {
         if (strlen(first_token) < 3)
-            fatal_error("%s is an invalid symbol\n", first_token);
+            fatal_error("%s is an invalid symbol.\n", first_token);
         if (strlen(first_token) > 3)
-            fprintf(stderr, "Warning: extended chars not yet supported (parsing %s)\n", first_token);
+            fprintf(stderr,
+                    "Warning: extended chars not yet supported (parsing %s).\n",
+                    first_token);
 
         ret->type = OTYPE_CHR;
         ret->chr.value = first_token[2];

@@ -5,4 +5,6 @@
 
 Object *plus(Object *params, Environment *env);
 
+Object *gt(Object *params, Environment *env);
+
 #endif //MULISP_PRIM_H

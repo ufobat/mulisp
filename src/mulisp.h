@@ -8,7 +8,7 @@
 #ifndef MUFORTH_MUFORTH_H
 #define MUFORTH_MUFORTH_H
 
-#define HASHTBL_SIZE 1000
+#define HASHTBL_SIZE 10
 
 #define MAX(a, b) (a > b ? a : b)
 
