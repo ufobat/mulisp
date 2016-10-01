@@ -46,6 +46,8 @@ void instr_stack_push(enum e_stack_instr_type type, Environment *env, Object *ob
     instr_stack[instr_stack_pointer].obj = obj;
     instr_stack[instr_stack_pointer].parameters = parameters;
     instr_stack_pointer++;
+
+    //printf("Instr stack at %d\n", instr_stack_pointer);
 }
 
 StackInstr instr_stack_pop()
@@ -110,8 +112,7 @@ Object *map_eval(Object *list, Environment *env)
     else if(list->type == OTYPE_PAIR) {
         ret = malloc(sizeof(Object));
         ret->type = OTYPE_PAIR;
-        st_eval(list->pair.car, env);
-        ret->pair.car = ret_stack_pop();
+        ret->pair.car = eval(list->pair.car, env);
         ret->pair.cdr = map_eval(list->pair.cdr, env);
     }
     else
@@ -174,7 +175,6 @@ void st_eval(Object *to_eval, Environment *env)
             ret_stack_push(to_eval->pair.cdr->pair.car);
         }
         else if (is_sym && !strcmp(sym, "begin")) {
-            /* TODO: Not properly tail recursive. This is a fairly major problem. */
             Object *ret = nil;
             Object *iter = to_eval->pair.cdr;
 
@@ -184,7 +184,7 @@ void st_eval(Object *to_eval, Environment *env)
             }
 
             while (iter->pair.cdr != nil) {
-                st_eval(iter->pair.car, env);
+                eval(iter->pair.car, env);
                 iter = iter->pair.cdr;
                 ret_stack_pop();
             }
@@ -243,8 +243,7 @@ void st_eval(Object *to_eval, Environment *env)
             Object *function;
             Object *parameters;
 
-            st_eval(to_eval->pair.car, env);
-            function = ret_stack_pop();
+            function = eval(to_eval->pair.car, env);
             parameters = map_eval(to_eval->pair.cdr, env);
             instr_stack_push(INSTR_APPLY, env, function, parameters);
         }

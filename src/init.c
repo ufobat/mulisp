@@ -34,4 +34,6 @@ void init()
     make_prim("+", plus);
     make_prim(">", gt);
     make_prim("-", minus);
+    make_prim("=", arithmetic_equal);
+    make_prim("*", multiply);
 }
