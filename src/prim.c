@@ -16,6 +16,25 @@ Object *plus(Object *params, Environment *env)
     return ret;
 }
 
+
+Object *minus(Object *params, Environment *env)
+{
+    Object *ret = malloc(sizeof(Object));
+    ret->type = OTYPE_INT;
+
+    if (params->type == OTYPE_PAIR && params->pair.car->type == OTYPE_INT &&
+        params->pair.cdr->type == OTYPE_PAIR &&
+        params->pair.cdr->pair.car->type == OTYPE_INT &&
+        params->pair.cdr->pair.cdr->type == OTYPE_NIL)
+        ret->integer.value = params->pair.car->integer.value -
+                             params->pair.cdr->pair.car->integer.value;
+    else
+        fatal_error("Quite the illegal subtraction there");
+
+    return ret;
+}
+
+
 Object *gt(Object *params, Environment *env)
 {
     Object *ret = malloc(sizeof(Object));

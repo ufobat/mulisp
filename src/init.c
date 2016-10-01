@@ -5,9 +5,6 @@ Environment *global_environment;
 Object *nil;
 Object *f;
 Object *t;
-Object *quote;
-Object *quasiquote;
-Object *unquote;
 
 Object *make_prim(char *identifier, Object *(*f)(Object *args, Environment *env))
 {
@@ -36,4 +33,5 @@ void init()
 
     make_prim("+", plus);
     make_prim(">", gt);
+    make_prim("-", minus);
 }

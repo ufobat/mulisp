@@ -7,7 +7,7 @@
 
 int one_char_sym(int c)
 {
-    return c == '(' || c == ')';
+    return c == '(' || c == ')' || c == '\'';
 }
 
 int part_of_symbol(int c)
@@ -35,7 +35,8 @@ char *next_tok_from(char **string_pointer)
         if (matching == NULL)
             fatal_error("Unmatched \"\n");
         else if (matching - string > MAX_TOKEN_LENGTH - 2)
-            fatal_error("String constant over %d length\n", MAX_TOKEN_LENGTH - 2);
+            fatal_error("String constant over %d length\n",
+                        MAX_TOKEN_LENGTH - 2);
 
         strncpy(token, string, matching - string + 1);
         token[matching - string + 1] = 0;
@@ -70,7 +71,8 @@ char *next_tok_from(char **string_pointer)
             token[i_token] = *string;
             i_token++;
             string++;
-        } while (*string && part_of_symbol(*string) && i_token < MAX_TOKEN_LENGTH - 1);
+        } while (*string && part_of_symbol(*string) &&
+                 i_token < MAX_TOKEN_LENGTH - 1);
 
         token[i_token] = 0;
     }

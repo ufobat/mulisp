@@ -12,6 +12,8 @@
 
 #define MAX(a, b) (a > b ? a : b)
 
+#define QUOTE_STRING "quote"
+
 /*
  * General structures
  */
@@ -185,9 +187,6 @@ void run_tests();
 extern Object *nil;
 extern Object *t;
 extern Object *f;
-extern Object *quote;
-extern Object *quasiquote;
-extern Object *unquote;
 extern Environment *global_environment;
 
 #endif //MUFORTH_MUFORTH_H

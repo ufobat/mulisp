@@ -198,7 +198,23 @@ Object *parse(List **tokens_pointer)
     char *first_token = tokens->item;
     int do_update_and_free = 1;
 
-    if (!strcmp(first_token, "#t")) {
+    if (!strcmp(first_token, "'")) {
+        ret->type = OTYPE_PAIR;
+
+        ret->pair.car = malloc(sizeof(Object));
+        ret->pair.car->type = OTYPE_SYM;
+        ret->pair.car->str.value = malloc(strlen(QUOTE_STRING) + 1);
+        strcpy(ret->pair.car->str.value, QUOTE_STRING);
+
+        ret->pair.cdr = malloc(sizeof(Object));
+        ret->pair.cdr->type = OTYPE_PAIR;
+        ret->pair.cdr->pair.cdr = nil;
+
+        *tokens_pointer = tokens->next;
+        ret->pair.cdr->pair.car = parse(tokens_pointer);
+
+        do_update_and_free = 0;
+    } else if (!strcmp(first_token, "#t")) {
         ret->type = OTYPE_BOOL;
         ret->boolean.value = 1;
     }
