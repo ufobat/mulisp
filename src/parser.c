@@ -165,13 +165,14 @@ int parse_frac(char *tok, int *num_ptr, unsigned *denom_ptr)
     return num_not_null && denom_not_null;
 }
 
+Object *parse(List **tokens_pointer);
 
 /**
  * parse_list recursively parses a list, given that the initial '(' and
  * possibly some elements have been parsed.
  * @param tokens_pointer A pointer to the tokens list, which will be updated
  * to remove the successfully parsed elements.
- * @return The parsed list
+ * @return The parsed list, or `NULL` if the list was not terminated.
  */
 Object *parse_list(List **tokens_pointer)
 {
@@ -181,39 +182,38 @@ Object *parse_list(List **tokens_pointer)
     Object *first, *rest;
 
     if (tokens == NULL)
-        fatal_error("Non-terminated list\n");
+        return NULL;
 
     first_token = tokens->item;
 
     if (!strcmp(first_token, ")")) {
-        free(first_token);
         *tokens_pointer = tokens->next;
-        free(tokens);
 
         ret = nil;
     }
     else if (!strcmp(first_token, ".")) {
-        free(first_token);
         *tokens_pointer = tokens->next;
-        free(tokens);
 
         first = parse(tokens_pointer);
         tokens = *tokens_pointer;
 
         if (tokens == NULL) {
-            fatal_error("Non-terminated dotted list\n");
+            return NULL;
         } else if (strcmp(tokens->item, ")")) {
             fatal_error("Expected ) instead of %s after .\n", (char *) tokens->item);
         } else {
-            free(tokens->item);
             *tokens_pointer = tokens->next;
-            free(tokens);
         }
         ret = first;
     }
     else {
         first = parse(tokens_pointer);
         rest = parse_list(tokens_pointer);
+
+        if (rest == NULL) {
+            return NULL;
+        }
+
         ret = malloc(sizeof(Object));
         ret->type = OTYPE_PAIR;
         ret->pair.car = first;
@@ -226,19 +226,23 @@ Object *parse_list(List **tokens_pointer)
 
 /**
  * parse returns the first object in tokens, and updates the tokens List
- * pointer to point to the beginning of the unparsed tokens. Also frees the
- * parsed tokens and associated list.
- *
+ * pointer to point to the beginning of the unparsed tokens.
  * @param tokens_pointer A pointer to the tokens list, which will be updated
  * to remove the successfully parsed elements.
- * @return The parsed object
+ * @return The parsed object, or NULL if no object could be parsed
+ * successfully.
  */
 Object *parse(List **tokens_pointer)
 {
     List *tokens = *tokens_pointer;
+
+    if (tokens == NULL) {
+        return NULL;
+    }
+
     Object *ret = malloc(sizeof(Object));
     char *first_token = tokens->item;
-    int do_update_and_free = 1;
+    *tokens_pointer = tokens->next;
 
     if (!strcmp(first_token, "'")) {
         ret->type = OTYPE_PAIR;
@@ -254,8 +258,6 @@ Object *parse(List **tokens_pointer)
 
         *tokens_pointer = tokens->next;
         ret->pair.cdr->pair.car = parse(tokens_pointer);
-
-        do_update_and_free = 0;
     } else if (!strcmp(first_token, "#t")) {
         ret->type = OTYPE_BOOL;
         ret->boolean.value = 1;
@@ -295,12 +297,12 @@ Object *parse(List **tokens_pointer)
     }
     else if (!strcmp(first_token, "(")) {
         free(ret);
-        free(first_token);
-        *tokens_pointer = tokens->next;
-        free(tokens);
 
         ret = parse_list(tokens_pointer);
-        do_update_and_free = 0;
+
+        if (ret == NULL) {
+            return NULL;
+        }
     }
     else if (!strcmp(first_token, ")") || !strcmp(first_token, ".")) {
         fatal_error("Unmatched or unexpected %s\n", first_token);
@@ -310,10 +312,34 @@ Object *parse(List **tokens_pointer)
         ret = make_symbol(first_token);
     }
 
-    if (do_update_and_free) {
-        free(first_token);
-        *tokens_pointer = tokens->next;
-        free(tokens);
+    return ret;
+}
+
+
+/**
+ * parse_and_free calls parse, then frees the parsed part of the token list
+ * if the parse was successful, or restores the tokens pointer to its original
+ * status otherwise.
+ * @param tokens_pointer A pointer to a list of tokens
+ * @return The parsed object
+ */
+Object *parse_and_free(List **tokens_pointer)
+{
+    List *initial_tokens = *tokens_pointer;
+
+    Object *ret = parse(tokens_pointer);
+
+    if (ret == NULL) {
+        *tokens_pointer = initial_tokens;
+        return NULL;
+    }
+
+    for (List *token = initial_tokens;
+         token != NULL && token != *tokens_pointer;) {
+        List *prev_token = token;
+        free(token->item);
+        token = token->next;
+        free(prev_token);
     }
 
     return ret;

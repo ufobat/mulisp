@@ -110,8 +110,8 @@ char *next_tok_from(char **string_pointer)
  */
 List *tokenize(char *string)
 {
-    List *lst_head = NULL;
     List *current_lst_item;
+    List *lst_head = NULL;
     char *new_token;
 
     while (*string != 0) {

@@ -131,8 +131,7 @@ List *tokenize(char *string);
 
 Object *make_symbol(char *val);
 
-Object *parse(List **tokens_pointer);
-
+Object *parse_and_free(List **tokens_pointer);
 
 /*
  * Writer - write.c
@@ -169,6 +168,8 @@ void delete_env(Environment *env);
  */
 
 void fatal_error(const char *fmt, ...);
+
+List *append_list(List *l1, List *l2);
 
 /*
  * For testing - remove afterwards.
