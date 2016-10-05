@@ -1,8 +1,19 @@
+/**
+ * \file parser.c
+ * Functions for parsing the input
+ */
+
 #include <string.h>
 #include <stdlib.h>
 #include "mulisp.h"
 
 
+/**
+ * make_symbol creates a new symbol whose value is a given string.
+ * @param val The value of the symbol. This string is copied into the symbol,
+ * and can safely be modified after calling make_symbol.
+ * @return The newly-created object
+ */
 Object *make_symbol(char *val)
 {
     Object *sym = malloc(sizeof(Object));
@@ -13,15 +24,23 @@ Object *make_symbol(char *val)
 }
 
 
+/**
+ * is_num_char checks that a char is numeric.
+ * @param c The char to check
+ * @return 1 if c is numeric, 0 otherwise
+ */
 int is_num_char(char c)
 {
     return c >= '0' && c <= '9';
 }
 
-/* The following functions return 1 if the parse was successful, 0 otherwise.
- * The result of parsing is stored in the arguments
- */
 
+/**
+ * parse_int tries to parse a token into an integer
+ * @param tok The token to parse
+ * @param value A pointer that will be set to the integer value
+ * @return 1 if an integer was successfully parsed, 0 otherwise
+ */
 int parse_int(char *tok, int *value)
 {
     int val = 0;
@@ -47,6 +66,12 @@ int parse_int(char *tok, int *value)
     return 1;
 }
 
+/**
+ * parse_float tries to parse a token into a double
+ * @param tok The token to parse
+ * @param value A pointer that will be set to the double value
+ * @return 1 if a double was successfully parsed, 0 otherwise
+ */
 int parse_float(char *tok, double *value)
 {
     int sign = 1;
@@ -90,6 +115,13 @@ int parse_float(char *tok, double *value)
     return not_null;
 }
 
+/**
+ * parse_frac tries to parse a token into a fraction
+ * @param tok The token to parse
+ * @param num_ptr A pointer that will be set to the parsed numerator
+ * @param denom_ptr A pointer that will be set to the parsed denumerator
+ * @return 1 if a fraction was successfully parsed, 0 otherwise.
+ */
 int parse_frac(char *tok, int *num_ptr, unsigned *denom_ptr)
 {
     int num = 0;
@@ -134,8 +166,12 @@ int parse_frac(char *tok, int *num_ptr, unsigned *denom_ptr)
 }
 
 
-/* parse_list -- recursively parse a list, given the initial ( and some items have already been parsed
- *
+/**
+ * parse_list recursively parses a list, given that the initial '(' and
+ * possibly some elements have been parsed.
+ * @param tokens_pointer A pointer to the tokens list, which will be updated
+ * to remove the successfully parsed elements.
+ * @return The parsed list
  */
 Object *parse_list(List **tokens_pointer)
 {
@@ -188,8 +224,14 @@ Object *parse_list(List **tokens_pointer)
 }
 
 
-/* parse -- returns the first object in tokens, and updates the tokens List pointer to point to the beginning of the
- * unparsed tokens. Also frees the parsed tokens and associated list.
+/**
+ * parse returns the first object in tokens, and updates the tokens List
+ * pointer to point to the beginning of the unparsed tokens. Also frees the
+ * parsed tokens and associated list.
+ *
+ * @param tokens_pointer A pointer to the tokens list, which will be updated
+ * to remove the successfully parsed elements.
+ * @return The parsed object
  */
 Object *parse(List **tokens_pointer)
 {
@@ -233,7 +275,8 @@ Object *parse(List **tokens_pointer)
         ret->type = OTYPE_CHR;
         ret->chr.value = first_token[2];
     }
-    else if (strlen(first_token) >= 2 && first_token[0] == '"' && first_token[strlen(first_token) - 1] == '"') {
+    else if (strlen(first_token) >= 2 && first_token[0] == '"' &&
+            first_token[strlen(first_token) - 1] == '"') {
         ret->type = OTYPE_STR;
         ret->str.length = (int) strlen(first_token) - 2;
         ret->str.value = malloc((ret->str.length + 2) * sizeof(char));
@@ -246,7 +289,8 @@ Object *parse(List **tokens_pointer)
     else if (parse_float(first_token, &(ret->floating.value))) {
         ret->type = OTYPE_FLT;
     }
-    else if (parse_frac(first_token, &(ret->fraction.numerator), &(ret->fraction.denominator))) {
+    else if (parse_frac(first_token, &(ret->fraction.numerator),
+                        &(ret->fraction.denominator))) {
         ret->type = OTYPE_FRAC;
     }
     else if (!strcmp(first_token, "(")) {

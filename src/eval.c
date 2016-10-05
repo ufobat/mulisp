@@ -1,13 +1,36 @@
+/**
+ * \file eval.c
+ * Expression evaluation.
+ * The evaluator is stack-based to enable tail-call optimization.
+ */
+
 #include <string.h>
 #include "mulisp.h"
 
+/**
+ * \def STACK_SIZE
+ * STACK_SIZE is the maximum size of the stack, i.e. the maximum depth of
+ * recursive calls assuming no TCO can be performed. There are two stacks,
+ * the instruction stack, on which tail calls are pushed, and the return stack,
+ * on which returned values are pushed.
+ */
 #define STACK_SIZE 1000
 
+/**
+ * e_stack_instr_type represents a type of instruction, either apply a function
+ * (INSTR_APPLY) or evaluate an object (INSTR_EVAL).
+ */
 enum e_stack_instr_type
 {
     INSTR_EVAL, INSTR_APPLY
 };
 
+/**
+ * s_stack_instr represents an intruction on the stack, including the type of
+ * instruction, the environment in which to perform the evaluation, and
+ * the object to evaluate/function to apply and its parameter list.
+ * If the type is `INSTR_EVAL`, the parameters should be `NULL`.
+ */
 typedef struct s_stack_instr
 {
     enum e_stack_instr_type type;
@@ -23,6 +46,9 @@ Object *ret_stack[STACK_SIZE];
 int ret_stack_pointer = 0;
 
 
+/**
+ * print_ret_stack prints the return stack.
+ */
 void print_ret_stack()
 {
     int i;
@@ -36,7 +62,15 @@ void print_ret_stack()
 }
 
 
-void instr_stack_push(enum e_stack_instr_type type, Environment *env, Object *obj, Object *parameters)
+/**
+ * instr_stack_push pushes an instruction on the instruction stack.
+ * @param type The type of instruction to be pushed
+ * @param env The environment in which the instruction should be executed
+ * @param obj The object to evaluate/function to call
+ * @param parameters The parameters of the function. This argument can be NULL.
+ */
+void instr_stack_push(enum e_stack_instr_type type, Environment *env,
+                      Object *obj, Object *parameters)
 {
     if (instr_stack_pointer > STACK_SIZE)
         fatal_error("Instruction stack overflow.\n");
@@ -50,6 +84,12 @@ void instr_stack_push(enum e_stack_instr_type type, Environment *env, Object *ob
     //printf("Instr stack at %d\n", instr_stack_pointer);
 }
 
+
+/**
+ * instr_stack_pop returns the top element on the instruction stack and
+ * decreases the stack pointer.
+ * @return The top instruction on the instruction stack.
+ */
 StackInstr instr_stack_pop()
 {
     if (instr_stack_pointer <= 0)
@@ -58,6 +98,11 @@ StackInstr instr_stack_pop()
 }
 
 
+/**
+ * ret_stack_push pushes an object on top of the return stack, and increments
+ * the return stack pointer.
+ * @param obj The object to push on the return stack.
+ */
 void ret_stack_push(Object *obj)
 {
     if (ret_stack_pointer > STACK_SIZE)
@@ -67,6 +112,12 @@ void ret_stack_push(Object *obj)
     //print_ret_stack();
 }
 
+
+/**
+ * ret_stack_pop gets the object on top of the instruction stack, and decrements
+ * the return stack pointer.
+ * @return The object that was on top of the instruction stack.
+ */
 Object *ret_stack_pop()
 {
     if (ret_stack_pointer <= 0)
@@ -78,7 +129,29 @@ Object *ret_stack_pop()
 
 
 
-/* Binds arguments to argument lists
+/**
+ * map_args binds function arguments.
+ * map_args will walk through formals and parameters assuming that both
+ * have the same list/sub-list structure. When a symbol is found in `formals`,
+ * that symbol is bound to the corresponding element of `parameters` in the
+ * given environment.
+ *
+ * A few examples of `formals`, `parameters`, and the resulting bindings:
+ *
+ * | Formals     | Parameters    | Bindings               |
+ * |-------------|---------------|------------------------|
+ * | `a`         | `1`           | a: `1`                 |
+ * | `a`         | `(1 2 3)`     | a: `(1 2 3)`           |
+ * | `(a b)`     | `(1 2)`       | a: `1`; b: `2`         |
+ * | `(a b)`     | `(1 2 3)`     | Error                  |
+ * | `(a . b)`   | `(1 2 3)`     | a: `1`; b: `(2 3)`     |
+ * | `(a . b)`   | `(1)`         | a: `1`; b: `()`        |
+ * | `((a b) c)` | `((1 2) 3)`   | a: `1`; b: `2`; c: `3` |
+ * | `((a b) c)` | `((1 2) 3 4)` | Error                  |
+ *
+ * @param formals A formal argument list
+ * @param parameters A list of arguments
+ * @param env The environment in which to create the bindings
  */
 void map_args(Object *formals, Object *parameters, Environment *env)
 {
@@ -102,7 +175,13 @@ void map_args(Object *formals, Object *parameters, Environment *env)
 void st_eval(Object *to_eval, Environment *env);
 
 
-/* Evaluates all items in a list, returns a new list with these items */
+/**
+ * map_eval evaluates all items in a list and returns a new list with these
+ * items.
+ * @param list The list to whose elements to evaluate
+ * @param env The environment in which to perform the evaluations
+ * @return A new list with evaluated members
+ */
 Object *map_eval(Object *list, Environment *env)
 {
     Object *ret = nil;
@@ -122,6 +201,16 @@ Object *map_eval(Object *list, Environment *env)
 }
 
 
+/**
+ * st_apply applies a function by evaluating all its parameters, mapping them
+ * to the formal arguments, and pushing a new eval instruction for the body
+ * of the function. If the passed function is a primitive procedure, it is
+ * evaluated immediately with no prior argument evaluation.
+ *
+ * @param function The function to evaluate
+ * @param parameters The parameters passed to the function
+ * @param env The environment in which the function was called
+ */
 void st_apply(Object *function, Object *parameters, Environment *env)
 {
     Environment *running_env;
@@ -258,8 +347,20 @@ void st_eval(Object *to_eval, Environment *env)
     }
 }
 
-Object *dispatch()
+
+/**
+ * eval pushes a new evaluation instruction on the stack, then repeatedly
+ * pops the instruction stacks and performs the appropriate action (apply
+ * or eval) until the stack is empty, then returns the result on the return
+ * stack.
+ * @param to_eval The object to evaluate
+ * @param env The environment in which to perform the evaluation
+ * @return The result of the evaluation
+ */
+Object *eval(Object *to_eval, Environment *env)
 {
+    instr_stack_push(INSTR_EVAL, env, to_eval, NULL);
+
     StackInstr to_exec;
 
     while (instr_stack_pointer != 0) {
@@ -271,11 +372,4 @@ Object *dispatch()
     }
 
     return ret_stack_pop();
-}
-
-Object *eval(Object *to_eval, Environment *env)
-{
-    instr_stack_push(INSTR_EVAL, env, to_eval, NULL);
-
-    return dispatch();
 }

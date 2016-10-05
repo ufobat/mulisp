@@ -14,3 +14,8 @@ void fatal_error(const char *fmt, ...)
 
     va_end(args);
 }
+
+bool is_atom(Object *object)
+{
+    return object->type != OTYPE_PAIR;
+}

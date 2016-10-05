@@ -1,3 +1,8 @@
+/**
+ * \file init.c
+ * Initialize the interpreter
+ */
+
 #include "mulisp.h"
 #include "prim.h"
 
@@ -6,7 +11,15 @@ Object *nil;
 Object *f;
 Object *t;
 
-Object *make_prim(char *identifier, Object *(*f)(Object *args, Environment *env))
+
+/**
+ * make_prim create a new Object encapsulating a primitive, and registers in
+ * in the global environment.
+ * @param identifier The name to give to the primitive
+ * @param f A function pointer to the wrapped primitive
+ * @return The newly-registered object
+ */
+Object *make_prim(char *identifier, Object *(*f)(Object *, Environment *))
 {
     Object *ret = malloc(sizeof(Object));
     ret->type = OTYPE_PRIM;
@@ -16,6 +29,11 @@ Object *make_prim(char *identifier, Object *(*f)(Object *args, Environment *env)
     return ret;
 }
 
+
+/**
+ * init creates the global environment, the values of `nil`, `t` and `f`, and
+ * adds primitives to it.
+ */
 void init()
 {
     global_environment = new_env(NULL);
@@ -31,9 +49,9 @@ void init()
     f->type = OTYPE_BOOL;
     f->boolean.value = 0;
 
-    make_prim("+", plus);
-    make_prim(">", gt);
-    make_prim("-", minus);
-    make_prim("=", arithmetic_equal);
-    make_prim("*", multiply);
+    make_prim("+", prim_plus);
+    make_prim(">", prim_gt);
+    make_prim("-", prim_minus);
+    make_prim("=", prim_equal);
+    make_prim("*", prim_multiply);
 }

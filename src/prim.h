@@ -3,14 +3,14 @@
 
 #include "mulisp.h"
 
-Object *plus(Object *params, Environment *env);
+Object *prim_plus(Object *params, Environment *env);
 
-Object *gt(Object *params, Environment *env);
+Object *prim_gt(Object *params, Environment *env);
 
-Object *minus(Object *params, Environment *env);
+Object *prim_minus(Object *params, Environment *env);
 
-Object *arithmetic_equal(Object *params, Environment *env);
+Object *prim_equal(Object *params, Environment *env);
 
-Object *multiply(Object *params, Environment *env);
+Object *prim_multiply(Object *params, Environment *env);
 
 #endif //MULISP_PRIM_H

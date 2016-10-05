@@ -31,7 +31,7 @@ int main()
 {
     init();
 
-    printf("*** muScheme 2016-05-23\n");
+    printf("*** muScheme %s\n", VERSION_STRING);
 
     repl();
 

@@ -1,3 +1,8 @@
+/**
+ * \file tokenize.c
+ * Tokenization functions
+ */
+
 #include <ctype.h>
 #include <stdlib.h>
 #include <string.h>
@@ -5,6 +10,12 @@
 
 #define MAX_TOKEN_LENGTH 1000
 
+/**
+ * one_char_sym returns true iff its parameter is a one-character symbol that
+ * behaves as if there were spaces around it.
+ * @param c The char to check
+ * @return
+ */
 int one_char_sym(int c)
 {
     return c == '(' || c == ')' || c == '\'';
@@ -16,9 +27,12 @@ int part_of_symbol(int c)
 }
 
 
-/* next_tok_from - returns the next token in string. Updates string to the first position after the end of the
- * returned token.
+/**
+ * next_tok_from returns the next token in a string, updating the argument to
+ * the first position after the end of the returned token.
  * TODO: add support for long chars like #\space
+ * @param string_pointer A pointer to the string from which to get a token
+ * @return The first token from the string, newly allocated.
  */
 char *next_tok_from(char **string_pointer)
 {
@@ -89,6 +103,11 @@ char *next_tok_from(char **string_pointer)
 }
 
 
+/**
+ * tokenize returns a list of token in the corresponding string.
+ * @param string The string to tokenize
+ * @return A list of tokens
+ */
 List *tokenize(char *string)
 {
     List *lst_head = NULL;

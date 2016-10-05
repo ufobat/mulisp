@@ -5,7 +5,7 @@
  * of list destructuring */
 
 
-Object *plus(Object *params, Environment *env)
+Object *prim_plus(Object *params, Environment *env)
 {
     Object *ret = malloc(sizeof(Object));
     ret->type = OTYPE_INT;
@@ -14,7 +14,7 @@ Object *plus(Object *params, Environment *env)
         ret->integer.value = 0;
     else if (params->type == OTYPE_PAIR && params->pair.car->type == OTYPE_INT)
         ret->integer.value = params->pair.car->integer.value +
-                             plus(params->pair.cdr, env)->integer.value;
+                prim_plus(params->pair.cdr, env)->integer.value;
     else
         fatal_error("Quite the illegal addition there");
 
@@ -22,7 +22,7 @@ Object *plus(Object *params, Environment *env)
 }
 
 
-Object *minus(Object *params, Environment *env)
+Object *prim_minus(Object *params, Environment *env)
 {
     Object *ret = malloc(sizeof(Object));
     ret->type = OTYPE_INT;
@@ -40,7 +40,7 @@ Object *minus(Object *params, Environment *env)
 }
 
 
-Object *gt(Object *params, Environment *env)
+Object *prim_gt(Object *params, Environment *env)
 {
     Object *ret = malloc(sizeof(Object));
     ret->type = OTYPE_BOOL;
@@ -57,7 +57,7 @@ Object *gt(Object *params, Environment *env)
     return ret;
 }
 
-Object *arithmetic_equal(Object *params, Environment *env)
+Object *prim_equal(Object *params, Environment *env)
 {
     Object *ret = malloc(sizeof(Object));
     ret->type = OTYPE_BOOL;
@@ -75,7 +75,7 @@ Object *arithmetic_equal(Object *params, Environment *env)
 }
 
 
-Object *multiply(Object *params, Environment *env)
+Object *prim_multiply(Object *params, Environment *env)
 {
     Object *ret = malloc(sizeof(Object));
     ret->type = OTYPE_INT;
@@ -84,7 +84,7 @@ Object *multiply(Object *params, Environment *env)
         ret->integer.value = 1;
     else if (params->type == OTYPE_PAIR && params->pair.car->type == OTYPE_INT)
         ret->integer.value = params->pair.car->integer.value *
-                             plus(params->pair.cdr, env)->integer.value;
+                prim_plus(params->pair.cdr, env)->integer.value;
     else
         fatal_error("Quite the illegal addition there");
 

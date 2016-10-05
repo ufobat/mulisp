@@ -4,13 +4,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <stdbool.h>
 
 #ifndef MUFORTH_MUFORTH_H
 #define MUFORTH_MUFORTH_H
 
+#define VERSION_STRING "2016-10-01"
+
 #define HASHTBL_SIZE 10
 
-#define MAX(a, b) (a > b ? a : b)
+#include "macros.h"
 
 #define QUOTE_STRING "quote"
 
@@ -149,6 +152,8 @@ Object *eval(Object *to_eval, Environment *env);
  * Environments - env.c
  */
 
+struct s_hashtable_entry *get_entry(char *identifier, Environment *env);
+
 Object *get_object(char *identifier, Environment *env);
 
 void define_object(char *identifier, Object *obj, Environment *env);
@@ -178,6 +183,8 @@ int parse_frac(char *tok, int *num, unsigned *denom);
 unsigned get_hash(char *str);
 
 void run_tests();
+
+bool is_atom(Object *object);
 
 
 /*
