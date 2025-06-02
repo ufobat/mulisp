@@ -41,7 +41,8 @@ int is_syntax(char *symbol_name)
  */
 Object *expand_syntax_rule(Object *expr)
 {
-
+    (void)expr;
+    return NULL;
 }
 
 

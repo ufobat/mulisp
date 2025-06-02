@@ -24,6 +24,7 @@ Object *prim_plus(Object *params, Environment *env)
 
 Object *prim_minus(Object *params, Environment *env)
 {
+    (void)env;
     Object *ret = malloc(sizeof(Object));
     ret->type = OTYPE_INT;
 
@@ -42,6 +43,7 @@ Object *prim_minus(Object *params, Environment *env)
 
 Object *prim_gt(Object *params, Environment *env)
 {
+    (void)env;
     Object *ret = malloc(sizeof(Object));
     ret->type = OTYPE_BOOL;
 
@@ -59,6 +61,7 @@ Object *prim_gt(Object *params, Environment *env)
 
 Object *prim_equal(Object *params, Environment *env)
 {
+    (void)env;
     Object *ret = malloc(sizeof(Object));
     ret->type = OTYPE_BOOL;
 

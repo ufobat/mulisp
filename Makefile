@@ -13,5 +13,5 @@ endif
 include $(ZOS_PATH)/kernel_headers/sdcc/base_sdcc.mk
 
 
-run:
+run: all
 	$(ZEAL_NATIVE_BIN) -H bin -r $(ZEAL_NATIVE_ROM) #-t tf.img -e eeprom.img

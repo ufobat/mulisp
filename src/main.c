@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include <zos_sys.h>
 #include <zos_vfs.h>
@@ -10,39 +11,52 @@
 #define MAX_LINE 1000
 char line[MAX_LINE];
 
-void repl(zos_dev_t *input_file, bool verbose)
+void repl(zos_dev_t input_file, bool verbose)
 {
-    (void)input_file;
-
     List *tokens = NULL;
     Object *parsed;
-    char *prompt = ">>> ";
+    char prompt[5] = ">>> ";
+    uint16_t size;
+    zos_err_t err;
 
     while(1) {
-        if (verbose)
-            printf(prompt);
+        if (verbose) {
+            size = strlen(prompt);
+            err = write(DEV_STDOUT, prompt, &size);
+            if(err != ERR_SUCCESS) {
+                printf("ERROR: stdout, prompt %02\n", err);
+                exit(err);
+            }
+        }
 
-
-        uint16_t size = MAX_LINE;
-        zos_err_t err = read(DEV_STDIN, line, &size);
+        size = MAX_LINE;
+        err = read(input_file, line, &size);
         if(err != ERR_SUCCESS) {
             printf("ERROR: fgets %02\n", err);
             exit(err);
+        } else {
+            printf("$$$ line(%d): %s\n", size, line);
         }
 
-        if (strlen(line) == 0)
+        if (size < 2) {
+            printf("$$$ zero length\n");
             break;
-        if (!strcmp(line, ",exit"))
+        }
+        if (!strcmp(line, ",exit")) {
+            printf("$$$ exit\n");
             break;
+        }
 
         tokens = append_list(tokens, tokenize(line));
         while(tokens != NULL) {
             parsed = parse_and_free(&tokens);
             if (parsed == NULL) {
-                prompt = "... ";
+                strcpy(prompt, "... ");
+                // prompt = "... ";
                 break;
             } else {
-                prompt = ">>> ";
+                strcpy(prompt, ">>> ");
+                // prompt = ">>> ";
             }
 
             if (verbose) {
@@ -66,6 +80,7 @@ int main(int argc, char **argv)
 
     printf("*** muScheme %s\n", VERSION_STRING);
 
+    // TODO: parse args
     // if (argc == 2) {
     //     input_file = fopen(argv[1], "r");
     //     if (input_file == NULL) {
@@ -78,7 +93,7 @@ int main(int argc, char **argv)
     //     exit(1);
     // }
 
-    repl(&input_file, verbose);
+    repl(input_file, verbose);
 
     return 0;
 }
