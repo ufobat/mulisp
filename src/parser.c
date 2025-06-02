@@ -73,48 +73,48 @@ int parse_int(char *tok, int *value)
  * @param value A pointer that will be set to the float value
  * @return 1 if a float was successfully parsed, 0 otherwise
  */
-int parse_float(char *tok, float *value)
-{
-    int sign = 1;
-    int integer = 0;
-    float frac = 0;
-    int divider = 10;
-    int not_null = 0; // To avoid matching "." and "-."
+// int parse_float(char *tok, float *value)
+// {
+//     int sign = 1;
+//     int integer = 0;
+//     float frac = 0;
+//     int divider = 10;
+//     int not_null = 0; // To avoid matching "." and "-."
 
-    if (tok[0] == '-') {
-        sign = -1;
-        tok++;
-    }
-    if (!*tok)
-        return 0;
+//     if (tok[0] == '-') {
+//         sign = -1;
+//         tok++;
+//     }
+//     if (!*tok)
+//         return 0;
 
-    while (*tok) { // Integer part
-        if (!is_num_char(*tok)) {
-            if (*tok == '.') {
-                tok++;
-                break;
-            }
-            else
-                return 0;
-        }
-        not_null = 1;
-        integer *= 10;
-        integer += (*tok) - '0';
-        tok++;
-    }
-    while (*tok) { // Fractional part
-        if (!is_num_char(*tok))
-            return 0;
-        not_null = 1;
-        frac += (*tok - '0') / (float) divider;
-        divider *= 10;
-        tok++;
-    }
+//     while (*tok) { // Integer part
+//         if (!is_num_char(*tok)) {
+//             if (*tok == '.') {
+//                 tok++;
+//                 break;
+//             }
+//             else
+//                 return 0;
+//         }
+//         not_null = 1;
+//         integer *= 10;
+//         integer += (*tok) - '0';
+//         tok++;
+//     }
+//     while (*tok) { // Fractional part
+//         if (!is_num_char(*tok))
+//             return 0;
+//         not_null = 1;
+//         frac += (*tok - '0') / (float) divider;
+//         divider *= 10;
+//         tok++;
+//     }
 
-    *value = sign * ((float) integer + frac);
+//     *value = sign * ((float) integer + frac);
 
-    return not_null;
-}
+//     return not_null;
+// }
 
 /**
  * parse_frac tries to parse a token into a fraction
@@ -287,9 +287,9 @@ Object *parse(List **tokens_pointer)
     else if (parse_int(first_token, &(ret->integer.value))) {
         ret->type = OTYPE_INT;
     }
-    else if (parse_float(first_token, &(ret->floating.value))) {
-        ret->type = OTYPE_FLT;
-    }
+    // else if (parse_float(first_token, &(ret->floating.value))) {
+    //     ret->type = OTYPE_FLT;
+    // }
     else if (parse_frac(first_token, &(ret->fraction.numerator),
                         &(ret->fraction.denominator))) {
         ret->type = OTYPE_FRAC;

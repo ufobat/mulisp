@@ -4,3 +4,4 @@ doc/*
 !doc/doxygen.conf
 
 bin/
+zeal.ini

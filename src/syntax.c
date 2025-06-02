@@ -12,7 +12,7 @@ Environment *syntaxes;
 /*
  * Initializes the syntax hash table.
  */
-void init_syntax()
+void init_syntax(void)
 {
     syntaxes = new_env(NULL);
 }

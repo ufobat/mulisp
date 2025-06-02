@@ -177,7 +177,7 @@ List *append_list(List *l1, List *l2);
 
 int parse_int(char *tok, int *value);
 
-int parse_float(char *tok, float *value);
+// int parse_float(char *tok, float *value);
 
 int parse_frac(char *tok, int *num, unsigned *denom);
 
