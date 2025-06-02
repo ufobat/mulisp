@@ -8,11 +8,11 @@
 
 #include "mulisp.h"
 
-#define MAX_LINE 1000
-char line[MAX_LINE];
+#define MAX_LINE 100
 
 void repl(zos_dev_t input_file, bool verbose)
 {
+    char line[MAX_LINE];
     List *tokens = NULL;
     Object *parsed;
     char prompt[5] = ">>> ";
@@ -34,16 +34,12 @@ void repl(zos_dev_t input_file, bool verbose)
         if(err != ERR_SUCCESS) {
             printf("ERROR: fgets %02\n", err);
             exit(err);
-        } else {
-            printf("$$$ line(%d): %s\n", size, line);
         }
 
         if (size < 2) {
-            printf("$$$ zero length\n");
             break;
         }
         if (!strcmp(line, ",exit")) {
-            printf("$$$ exit\n");
             break;
         }
 
@@ -52,11 +48,9 @@ void repl(zos_dev_t input_file, bool verbose)
             parsed = parse_and_free(&tokens);
             if (parsed == NULL) {
                 strcpy(prompt, "... ");
-                // prompt = "... ";
                 break;
             } else {
                 strcpy(prompt, ">>> ");
-                // prompt = ">>> ";
             }
 
             if (verbose) {

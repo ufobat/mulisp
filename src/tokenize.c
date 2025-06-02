@@ -8,7 +8,7 @@
 #include <string.h>
 #include "mulisp.h"
 
-#define MAX_TOKEN_LENGTH 1000
+#define MAX_TOKEN_LENGTH 100
 
 /**
  * one_char_sym returns true iff its parameter is a one-character symbol that
@@ -34,7 +34,7 @@ int part_of_symbol(int c)
  * @param string_pointer A pointer to the string from which to get a token
  * @return The first token from the string, newly allocated.
  */
-char *next_tok_from(char **string_pointer)
+char *(next_tok_from)(char **string_pointer)
 {
     char *token = malloc(sizeof(char) * MAX_TOKEN_LENGTH);
     char *string = *string_pointer;
