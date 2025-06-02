@@ -9,7 +9,7 @@
 #ifndef MUFORTH_MUFORTH_H
 #define MUFORTH_MUFORTH_H
 
-#define VERSION_STRING "2016-10-01"
+#define VERSION_STRING "2025-06-02"
 
 #define HASHTBL_SIZE 10
 
@@ -62,7 +62,7 @@ typedef struct s_object
         } integer;
         struct
         {
-            double value;
+            float value;
         } floating;
         struct
         {
@@ -137,7 +137,7 @@ Object *parse_and_free(List **tokens_pointer);
  * Writer - write.c
  */
 
-void write(Object *object);
+void write_newline(Object *object);
 
 void write_item(Object *object);
 
@@ -177,7 +177,7 @@ List *append_list(List *l1, List *l2);
 
 int parse_int(char *tok, int *value);
 
-int parse_float(char *tok, double *value);
+int parse_float(char *tok, float *value);
 
 int parse_frac(char *tok, int *num, unsigned *denom);
 

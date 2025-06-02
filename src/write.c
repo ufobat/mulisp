@@ -74,7 +74,7 @@ void write_item(Object *object)
     }
 }
 
-void write(Object *object)
+void write_newline(Object *object)
 {
     write_item(object);
     printf("\n");

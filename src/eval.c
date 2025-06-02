@@ -14,7 +14,7 @@
  * the instruction stack, on which tail calls are pushed, and the return stack,
  * on which returned values are pushed.
  */
-#define STACK_SIZE 1000
+#define STACK_SIZE 100
 
 /**
  * e_stack_instr_type represents a type of instruction, either apply a function
@@ -94,7 +94,8 @@ StackInstr instr_stack_pop()
 {
     if (instr_stack_pointer <= 0)
         fatal_error("Instruction stack underflow.\n");
-    return instr_stack[--instr_stack_pointer];
+    StackInstr x = instr_stack[--instr_stack_pointer];
+    return x;
 }
 
 
