@@ -5,6 +5,7 @@
  */
 
 #include <string.h>
+#include <string.h>
 #include "mulisp.h"
 
 /**
@@ -14,7 +15,7 @@
  * the instruction stack, on which tail calls are pushed, and the return stack,
  * on which returned values are pushed.
  */
-#define STACK_SIZE 1000
+#define STACK_SIZE 256
 
 /**
  * e_stack_instr_type represents a type of instruction, either apply a function
@@ -49,7 +50,7 @@ int ret_stack_pointer = 0;
 /**
  * print_ret_stack prints the return stack.
  */
-void print_ret_stack()
+void print_ret_stack(void)
 {
     int i;
 
@@ -90,11 +91,12 @@ void instr_stack_push(enum e_stack_instr_type type, Environment *env,
  * decreases the stack pointer.
  * @return The top instruction on the instruction stack.
  */
-StackInstr instr_stack_pop()
+void instr_stack_pop(StackInstr *instr)
 {
     if (instr_stack_pointer <= 0)
         fatal_error("Instruction stack underflow.\n");
-    return instr_stack[--instr_stack_pointer];
+
+    memcpy(instr, &instr_stack[--instr_stack_pointer], sizeof(StackInstr));
 }
 
 
@@ -118,7 +120,7 @@ void ret_stack_push(Object *obj)
  * the return stack pointer.
  * @return The object that was on top of the instruction stack.
  */
-Object *ret_stack_pop()
+Object *ret_stack_pop(void)
 {
     if (ret_stack_pointer <= 0)
         fatal_error("Return stack underflow.\n");
@@ -364,7 +366,7 @@ Object *eval(Object *to_eval, Environment *env)
     StackInstr to_exec;
 
     while (instr_stack_pointer != 0) {
-        to_exec = instr_stack_pop();
+        instr_stack_pop(&to_exec);
         if (to_exec.type == INSTR_EVAL)
             st_eval(to_exec.obj, to_exec.env);
         else

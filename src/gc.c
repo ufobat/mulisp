@@ -17,7 +17,7 @@ short objects_flags[MAX_OBJ];
 
 
 /* Finds a free index in the objects array, or -1 if there is none. */
-static int find_free_index()
+static int find_free_index(void)
 {
     for (int i = 0; i < MAX_OBJ; i++) {
         if (objects_array[i] == NULL)
@@ -28,7 +28,7 @@ static int find_free_index()
 }
 
 
-void init_gc()
+void init_gc(void)
 {
     for (int i = 0; i < MAX_OBJ; i++) {
         objects_array[i] = NULL;
@@ -53,5 +53,5 @@ Object *new_object(enum e_type type)
 
 void collect_garbage(Environment *environment)
 {
-
+    (void)environment;
 }

@@ -34,7 +34,7 @@ Object *make_prim(char *identifier, Object *(*f)(Object *, Environment *))
  * init creates the global environment, the values of `nil`, `t` and `f`, and
  * adds primitives to it.
  */
-void init()
+void init(void)
 {
     global_environment = new_env(NULL);
 

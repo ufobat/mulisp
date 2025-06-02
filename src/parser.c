@@ -4,6 +4,7 @@
  */
 
 #include <string.h>
+#include <stdint.h>
 #include <stdlib.h>
 #include "mulisp.h"
 
@@ -67,16 +68,16 @@ int parse_int(char *tok, int *value)
 }
 
 /**
- * parse_float tries to parse a token into a double
+ * parse_float tries to parse a token into a float
  * @param tok The token to parse
- * @param value A pointer that will be set to the double value
- * @return 1 if a double was successfully parsed, 0 otherwise
+ * @param value A pointer that will be set to the float value
+ * @return 1 if a float was successfully parsed, 0 otherwise
  */
-int parse_float(char *tok, double *value)
+int parse_float(char *tok, float *value)
 {
     int sign = 1;
     int integer = 0;
-    double frac = 0;
+    float frac = 0;
     int divider = 10;
     int not_null = 0; // To avoid matching "." and "-."
 
@@ -110,7 +111,7 @@ int parse_float(char *tok, double *value)
         tok++;
     }
 
-    *value = sign * ((double) integer + frac);
+    *value = sign * ((float) integer + frac);
 
     return not_null;
 }
@@ -270,9 +271,7 @@ Object *parse(List **tokens_pointer)
         if (strlen(first_token) < 3)
             fatal_error("%s is an invalid symbol.\n", first_token);
         if (strlen(first_token) > 3)
-            fprintf(stderr,
-                    "Warning: extended chars not yet supported (parsing %s).\n",
-                    first_token);
+            printf("Warning: extended chars not yet supported (parsing %s).\n", first_token);
 
         ret->type = OTYPE_CHR;
         ret->chr.value = first_token[2];

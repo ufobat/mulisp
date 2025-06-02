@@ -2,3 +2,5 @@
 
 doc/*
 !doc/doxygen.conf
+
+bin/

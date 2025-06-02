@@ -1,16 +1,35 @@
+#include <stdio.h>
+#include <string.h>
 #include <stdarg.h>
+
+#include <zos_vfs.h>
+#include <zos_sys.h>
+
 #include "mulisp.h"
+
+char BUFFER[1024];
 
 void fatal_error(const char *fmt, ...)
 {
     va_list args;
     va_start(args, fmt);
 
-    fprintf(stdout, "***");
-    vfprintf(stdout, fmt, args);
-    fflush(stdout);
-    fflush(stderr);
-    exit(EXIT_FAILURE);
+    uint16_t size;
+
+    // fprintf(stdout, "***");
+    sprintf(BUFFER, "***");
+    size = strlen(BUFFER);
+    write(DEV_STDOUT, BUFFER, &size);
+
+    // vfprintf(stdout, fmt, args);
+    vsprintf(BUFFER, fmt, args);
+    size = strlen(BUFFER);
+    write(DEV_STDOUT, BUFFER, &size);
+
+    // fflush(stdout);
+    // fflush(stderr);
+    // exit(EXIT_FAILURE);
+    exit(ERR_FAILURE);
 
     va_end(args);
 }
